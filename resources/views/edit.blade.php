@@ -17,7 +17,7 @@
 
 
     @csrf
-    @method('PUT')
+    	@method('PUT')  
     <div class="form-group">
         <label for="name">Имя: *</label>
         <input class="form-control" placeholder="Имя" name="name" value="{{ old('name') ?? $message->name }}" type="text" id="name">
@@ -36,19 +36,3 @@
 
 
 
-@section('jQueryInline')
-<script type="text/javascript">
-    // #formid
-    $(window).on("beforeunload", function () {
-        return "Are you sure? You didn't finish the form!";
-    });
-    $(document).ready(function () {
-        $("#formid").on("submit", function (e) {
-            //check form to make sure it is kosher
-            //remove the ev
-            $(window).off("beforeunload");
-            return true;
-        });
-    });
-</script>
-@endsection

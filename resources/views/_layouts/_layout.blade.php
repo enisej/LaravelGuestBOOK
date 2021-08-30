@@ -1,5 +1,5 @@
-<!DOTYPE HTML>
-<html lang="ru-RU">
+<!DOCTYPE html> 
+<html lang="{{ app()->getLocale() }}" ng-app="LaravelCRUD">
     <head>
         <meta charset="UTF-8">
         <title>{{ $metaTitlePrefix }}Гостевая книга на Laravel</title>

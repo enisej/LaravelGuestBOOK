@@ -2,6 +2,7 @@
 
 namespace app\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Message; // Model Message
 use Validator; // Validator
@@ -21,6 +22,7 @@ class MessageController extends Controller {
             'allMessages' => Message::latest()->paginate(5),
         );
         return view('index', $data);
+        
     }
 
     /**
@@ -38,29 +40,32 @@ class MessageController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request) {
-        // Из всего $request сохраняем в виде архива только те данные, которые мы послали через формуляр.
-        $input = $request->all();
-        // Проверяем полученные данные
-        $validationResult = $this->_validation($input);
 
-        // Если данные прошли проверку, тогда в $validationResult будет NULL.
+        
+        $input = $request->all();
+        $validationResult = $this->_validation($input);
+        
+        
         if (!is_null($validationResult)) {
-            // Если данные не прошли проверку, тогда в $validationResult находится заполненый Response с адресом "редиректа" и ошибками.
+           
             return $validationResult;
         } // if
-        // Создаём новый объект Message
+
+
+
         $message = new Message();
-        // Заполняем объект Message данными
+        
         $message->name = $input['name'];
         $message->message = $input['message'];
-
-        // Сохраняем новые данные в базе данных
+        $message->email = $input['email'];
+        $message->yourwebsite = $input['yourwebsite'];
+        
         if ($message->save()) {
             return redirect()
                             ->route('messages')
                             ->with('sessionMessage', 'Запись добавлена.');
         } // if
-        // Если в процессе записи нового объекта произойдёт ошибка, отобразим ошибку 500.
+        
         abort(500);
     }
 
@@ -71,21 +76,21 @@ class MessageController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function show(Message $message) {
-        // Поиск name предыдущей записи
-        $previus = Message::where('name', '<', $message->name) // только те записи, у которых name меньше чем у нынешней.
-                ->select('name') // лишь поле name
-                ->orderby('name', 'desc') // сортировка данных по убыванию содержания ячейки 'name'
-                ->first(); // найти лишь первый элемент (эта же команда выполняет запрос в базу данных.
-        $previusID = ($previus != NULL) ? $previus->name : NULL; // Проверка. У первой записи нет предыдущей.
+        
+        $previus = Message::where('name', '<', $message->name)  
+                ->select('name')  
+                ->orderby('name', 'desc')  
+                ->first(); 
+        $previusID = ($previus != NULL) ? $previus->name : NULL; // 
        
         $next = Message                             // from `messages`
                 ::where('name', '>', $message->name)    // where `name` > $message->id
                 ->select('name')                      // select `name`
                 ->orderby('name', 'asc')              // order by `name` asc
-                ->first();                          // limit 1, а так же отправляет запрос базе данных, должно быть последним.
+                ->first();                          
         $nextID = ($next != NULL) ? $next->name : NULL;
 
-        // объединяем данные в один массив, чтобы их передать шаблонам.
+       
         $data = array(
             'title' => 'Гостевая книга на Laravel <br> Просмотр сообщения.',
             'metaTitlePrefix' => 'Просмотр одного сообщения. ',
@@ -93,7 +98,7 @@ class MessageController extends Controller {
             'previusName' => $previusName,
             'nextName' => $nextName
         );
-        // Обрабатываем шаблоны и заканчиваем работу
+        
         return view('show', $data);
     }
 
@@ -104,13 +109,13 @@ class MessageController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function edit(Message $message) {
-        // объединяем данные в один массив, чтобы их передать шаблонам.
+        
         $data = array(
             'title' => 'Исправление сообщения.',
             'metaTitlePrefix' => 'Исправление сообщения. ',
             'message' => $message,
         );
-        // Обрабатываем шаблоны и заканчиваем работу
+        
         return view('edit', $data);
     }
 
@@ -122,27 +127,23 @@ class MessageController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Message $message) {
-        // Из всего $request сохраняем в виде архива только те данные, которые мы послали через формуляр.
+        
         $input = $request->all();
-        // Проверяем полученные данные
         $validationResult = $this->_validation($input, $message->id);
-
-        // Если данные прошли проверку, тогда в $validationResult будет NULL.
         if (!is_null($validationResult)) {
-            // Если данные не прошли проверку, тогда в $validationResult находится заполненый Response с адресом "редиректа" и ошибками.
+            
             return $validationResult;
         } // if
-        // Заполняем объект Message данными
         $message->name = $input['name'];
         $message->message = $input['message'];
+        
 
-        // Сохраняем новые данные в базе данных
+       
         if ($message->save()) {
             return redirect()
                             ->route('messages', array('#' . $message->id))
                             ->with('sessionMessage', 'Запись изменена.');
         } // if
-        // Если в процессе записи нового объекта произойдёт ошибка, отобразим ошибку 500.
         abort(500);
     }
 
@@ -160,42 +161,36 @@ class MessageController extends Controller {
     }
 
     /**
-     * Проверяет данные, которые были введены в форму.$message
-     * 
-     * Если данные не проходят валидацию, то в выходной массив добавляется поле 'response'.
-     *
      * @param  array  $input
-     * @param  int  $id - ID записи, которую мы меняем. Если не задан, то считается, что мы создаём новую запись.
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     private function _validation($input, $id = NULL) {
-        // Поскольку не загрузили файлы русской локализации, то вручную прописываем сообщение для ошибок.
+        
         $validatorErrorMessages = array(
             'required' => 'Поле :attribute обязательно к заполнению',
         );
 
-        // Проверяем данные
+       
         $validator = Validator::make(
-                        $input, // Данные, которые мы получили из формы
-                        array(// Описываем требования к данным
+                        $input, 
+                        array(
                             'name' => 'required|max:255',
                             'message' => 'required',
+                            'email' => 'required|max:255',
                         ),
-                        $validatorErrorMessages); // Подключаем словарь с возможными ошибками.
-        // Определяем прошла ли проверка удачно или нет.
+                        $validatorErrorMessages);
+        
         if ($validator->fails()) {
-            // Проверка провалилась.
-            // Теперь генерируем куда переадресовать страничку. Если $id задан, то мы обновляем уже существующие данные. Если же $id не задан, то мы создаём новую запись.
             $redirectURL = ($id == NULL) ?
                     route('messages.index') :
                     route('messages.edit', $id);
 
-            // Подготавливаем "редирект"
-            return redirect($redirectURL) // Куда
-                            ->withErrors($validator) // Сообщения об ошибках
-                            ->withInput(); // Введённые данные
+           
+            return redirect($redirectURL) 
+                            ->withErrors($validator) 
+                            ->withInput(); 
         } // if
-        // Проверка прошла удачно.
         return NULL;
     }
 

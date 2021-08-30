@@ -21,17 +21,29 @@
 
 
 @csrf
-    {{-- @method('PUT') --}}
+{{-- @method('PUT') --}}
+   
     <div class="form-group">
         <label for="name">Имя: *</label>
-        <input class="form-control" placeholder="Имя" name="name" value="{{ old('name') }}" type="text" id="name">
+        <input class="form-control" placeholder="optional" name="name" value="{{ old('name') }}" type="text" id="name">
+    </div>
+
+    <div class="form-group">
+        <label for="name">e-mail: *</label>
+        <input class="form-control" placeholder="optional" name="email" value="{{ old('email') }}" type="text" id="email">
+    </div>
+
+    <div class="form-group">
+        <label for="name">yourwebsite: *</label>
+        <input class="form-control" placeholder="not optional" name="yourwebsite" value="{{ old('yourwebsite') }}" type="text" id="yourwebsite">
     </div>
 
     <div class="form-group">
         <label for="message">Сообщение: *</label>
-        <textarea class="form-control" rows="5" placeholder="Тект сообщения" name="message" cols="50" id="message">{{ old('message') }}</textarea>
+        <textarea class="form-control" rows="5" placeholder="optional" name="message" cols="50" id="message">{{ old('message') }}</textarea>
     </div>
 
+    
     <div class="form-group">
         <input class="btn btn-primary" type="submit" value="Добавить"/>
     </div>
@@ -82,3 +94,4 @@
 
 </section>
 @endsection
+

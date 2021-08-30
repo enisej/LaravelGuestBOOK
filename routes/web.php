@@ -10,16 +10,26 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-use App\Http\Controllers\PostsController;
+
 
 /*
 Route::get('/', function () {
     return view('welcome');
 });
  */
+use Illuminate\Http\Request;
+use App\Http\Controllers;
 
 
-Route::get('/', 'MessageController@index')->name('messages');
+
+Route::get('/', 'App\Http\Controllers\MessageController@index')->name('messages')
+->missing(fn($request) => response()->view('errors.project-not-found'));
 
 
-Route::resource('messages', 'MessageController')->except(['create']); 
+Route::resource('/messages', 'App\Http\Controllers\MessageController')->except(['create'])
+->missing(fn($request) => response()->view('errors.project-not-found'));
+
+
+
+
+
